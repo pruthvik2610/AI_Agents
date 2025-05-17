@@ -1,0 +1,353 @@
+{
+  "name": "Personal Assistant",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -700,
+        -240
+      ],
+      "id": "a621e503-56a8-4ae0-bb29-359db931e69a",
+      "name": "Telegram Trigger",
+      "webhookId": "6d16b333-f5e5-45c9-a6ca-e42e81b01545",
+      "credentials": {
+        "telegramApi": {
+          "id": "NHeegD26OqgmdGi0",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Telegram Trigger').item.json.message.text }}",
+        "options": {
+          "systemMessage": "=You are a personal assistant\n\n** Always use(look into) the \"Get Contacts\" tool for finding the email address of the person mentioned in the message for the \"Send Email\" and \"Book Event\" tool.\n\n** For weather information makle use of weather tool for information.\n\nToday's Date is {{ $now.format(\" yyyy-MM-dd\") }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        -260,
+        -240
+      ],
+      "id": "7a965ba2-7591-411f-bc83-682cef52f246",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-1.5-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -340,
+        40
+      ],
+      "id": "e905cca1-0a8b-4fc1-b683-f8b82bf41393",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "KNXL7OpOVXcMJzjI",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "contextWindowLength": 20
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -160,
+        40
+      ],
+      "id": "fa57cee6-beab-4ae7-a444-e56ab0f67c06",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('To', ``, 'string') }}",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        280,
+        40
+      ],
+      "id": "f9b125ac-d5bd-4fea-b247-9e16e80f93ff",
+      "name": "Send Email",
+      "webhookId": "df353953-a310-476d-be94-79a83216228b",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "c8QarR9Vd1NzBSUg",
+          "name": "Gmail account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appy5iwiqgAWBZwq2",
+          "mode": "list",
+          "cachedResultName": "Contacts List",
+          "cachedResultUrl": "https://airtable.com/appy5iwiqgAWBZwq2"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl8yENS3dFjxpmjJ",
+          "mode": "list",
+          "cachedResultName": "Contacts List",
+          "cachedResultUrl": "https://airtable.com/appy5iwiqgAWBZwq2/tbl8yENS3dFjxpmjJ"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtableTool",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        40
+      ],
+      "id": "7f18c6e9-ab5e-4a33-aece-b8f73ba85337",
+      "name": "Get Contacts",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "xcYFFCOr3ORbVR7A",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "ppruthvik699@gmail.com",
+          "mode": "list",
+          "cachedResultName": "ppruthvik699@gmail.com"
+        },
+        "start": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start', ``, 'string') }}",
+        "end": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End', ``, 'string') }}",
+        "useDefaultReminders": false,
+        "additionalFields": {
+          "attendees": [
+            "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('attendees0_Attendees', ``, 'string') }}"
+          ],
+          "description": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Description', ``, 'string') }}",
+          "summary": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Summary', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        420,
+        40
+      ],
+      "id": "ce75b1a5-a284-416e-9980-0e8ce72b676c",
+      "name": "Book Event",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "8iE9TcfSbNn6EWNe",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        160,
+        -240
+      ],
+      "id": "6ed02ff8-85ef-40c9-bc93-bfef22b0441d",
+      "name": "Response",
+      "webhookId": "dd8dca21-5251-41e3-9af5-7644ac4e2a80",
+      "credentials": {
+        "telegramApi": {
+          "id": "NHeegD26OqgmdGi0",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.message.chat.id }}",
+        "text": "One second",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -480,
+        -240
+      ],
+      "id": "4ca8f4fd-95e6-47ea-b874-b22f6a3e467c",
+      "name": "Wait Message",
+      "webhookId": "64d3f1c2-cb80-4bc8-853e-49e41f03647b",
+      "credentials": {
+        "telegramApi": {
+          "id": "NHeegD26OqgmdGi0",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "cityName": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('City', ``, 'string') }}"
+      },
+      "type": "n8n-nodes-base.openWeatherMapTool",
+      "typeVersion": 1,
+      "position": [
+        140,
+        40
+      ],
+      "id": "8baf6801-fdf2-4dfe-9bef-ac5069d1541a",
+      "name": "Weather",
+      "credentials": {
+        "openWeatherMapApi": {
+          "id": "T4mplxhOhkRE3RnY",
+          "name": "OpenWeatherMap account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Wait Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Email": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Contacts": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Book Event": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait Message": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Weather": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "d4964c2c-f479-46e7-9226-bdf2d054fb3f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b4012bfc638a4554a679a6952d625e4a895d4bfbd1af79acf45caba56541fda9"
+  },
+  "id": "aI0xRBPzK7vepVcH",
+  "tags": []
+}
