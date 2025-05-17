@@ -1,0 +1,434 @@
+{
+  "name": "My workflow 3",
+  "nodes": [
+    {
+      "parameters": {
+        "mode": "insert",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "rag-chat",
+          "mode": "list",
+          "cachedResultName": "rag-chat"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.1,
+      "position": [
+        500,
+        140
+      ],
+      "id": "0212d270-b0cf-40cd-adfc-7f0413d92842",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "0YQecOd60XUE9688",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "dataType": "binary",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1,
+      "position": [
+        600,
+        380
+      ],
+      "id": "22521d8d-700f-41cc-b536-fb94c694da38",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "chunkSize": 500,
+        "chunkOverlap": 50,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        680,
+        560
+      ],
+      "id": "f0d713b4-cf0e-4916-84f7-f097cb61c6fb",
+      "name": "Recursive Character Text Splitter"
+    },
+    {
+      "parameters": {
+        "modelName": "models/text-embedding-004"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        480,
+        360
+      ],
+      "id": "e13ca636-f27d-4a3f-92f7-b685339dc369",
+      "name": "Embeddings Google Gemini",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "7BnZYQIK08FCvMsg",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemPromptTemplate": "You are an assistant for question-answering tasks. Use the following pieces of retrieved context to answer the question.\nIf you don't know the answer, just say that you don't know, don't try to make up an answer.\n----------------\nContext: {context}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainRetrievalQa",
+      "typeVersion": 1.5,
+      "position": [
+        1360,
+        80
+      ],
+      "id": "6099dab9-e197-4cc6-adae-5275dbcab27b",
+      "name": "Question and Answer Chain"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-1.5-pro",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1340,
+        300
+      ],
+      "id": "85d753a0-ab02-4487-84ef-0c5e2ef2ef40",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "7BnZYQIK08FCvMsg",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.retrieverVectorStore",
+      "typeVersion": 1,
+      "position": [
+        1460,
+        300
+      ],
+      "id": "694ded71-0027-4141-abf2-f794d1a1ce11",
+      "name": "Vector Store Retriever"
+    },
+    {
+      "parameters": {
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "rag-chat",
+          "mode": "list",
+          "cachedResultName": "rag-chat"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.1,
+      "position": [
+        1460,
+        500
+      ],
+      "id": "8181b8f3-f254-4edc-89ef-aab8f9235c50",
+      "name": "Pinecone Vector Store1",
+      "credentials": {
+        "pineconeApi": {
+          "id": "0YQecOd60XUE9688",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/text-embedding-004"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1560,
+        700
+      ],
+      "id": "310cf9dc-ab73-45a8-8cc8-794e8372fc73",
+      "name": "Embeddings Google Gemini1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "7BnZYQIK08FCvMsg",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "language": "python",
+        "pythonCode": "# Loop over input items and add a new field called 'myNewField' to the JSON of each one\nresults = []\nfor item in _input.all():\n  results.append({\"text\": item.json.response})\nreturn results"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1840,
+        380
+      ],
+      "id": "677012f1-ae4b-4795-95b4-feb3463d6f0d",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "1pnnmaviCVQbpwhmi6bycWvgb-8H4wMTc",
+          "mode": "list",
+          "cachedResultName": "RAG Agent",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1pnnmaviCVQbpwhmi6bycWvgb-8H4wMTc"
+        },
+        "event": "fileCreated",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        120,
+        260
+      ],
+      "id": "dff9ab83-416a-41af-967c-214b0f4423a3",
+      "name": "File Created",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "s5dowW2XcV4N6pFX",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "1pnnmaviCVQbpwhmi6bycWvgb-8H4wMTc",
+          "mode": "list",
+          "cachedResultName": "RAG Agent",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1pnnmaviCVQbpwhmi6bycWvgb-8H4wMTc"
+        },
+        "event": "fileUpdated",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        120,
+        80
+      ],
+      "id": "11859072-f594-4295-96a4-ee22286890fb",
+      "name": "File_Updated",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "s5dowW2XcV4N6pFX",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        1160,
+        80
+      ],
+      "id": "e929bb87-ab96-4d6c-b497-6e33906505ab",
+      "name": "When chat message received",
+      "webhookId": "619871a1-5f39-4450-b789-1f9b262df8ad"
+    },
+    {
+      "parameters": {
+        "content": "## RAG AI Agent\n",
+        "height": 920,
+        "width": 1100,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1040,
+        -60
+      ],
+      "id": "f585e0f6-1a06-46c5-8a26-96a4a596f69f",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Tool To Add Google Drive Files To Vector DB\n",
+        "height": 920,
+        "width": 960,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        20,
+        -60
+      ],
+      "id": "c2359930-a82a-4024-95aa-f75b893c068f",
+      "name": "Sticky Note1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Question and Answer Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Vector Store Retriever": {
+      "ai_retriever": [
+        [
+          {
+            "node": "Question and Answer Chain",
+            "type": "ai_retriever",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store1": {
+      "ai_vectorStore": [
+        [
+          {
+            "node": "Vector Store Retriever",
+            "type": "ai_vectorStore",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Question and Answer Chain": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "File Created": {
+      "main": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "File_Updated": {
+      "main": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Question and Answer Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "65d58d46-ecd6-440f-a556-8e49f69f996f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "824415b47f6f5ef03d1c5393580b191f94a519b9c37f3533e4f9d8ddf525cf96"
+  },
+  "id": "UPmwILju2IDZ9lEl",
+  "tags": []
+}
