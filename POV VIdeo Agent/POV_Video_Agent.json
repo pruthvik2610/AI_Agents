@@ -1,0 +1,1317 @@
+{
+  "name": "POV Video Agent",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -220,
+        -40
+      ],
+      "id": "8e610e21-8c99-405f-9068-3830b90bc8f9",
+      "name": "When clicking ‘Test workflow’"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-1.5-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        120,
+        120
+      ],
+      "id": "a6056905-6a62-41ce-a95f-43f598e68aa8",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "7BnZYQIK08FCvMsg",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-1.5-pro",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -20,
+        1360
+      ],
+      "id": "990727d1-a674-452f-a257-deb11ad767a1",
+      "name": "Google Gemini Chat Model3",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "7BnZYQIK08FCvMsg",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        680,
+        1160
+      ],
+      "id": "c9dd5087-44db-4096-acf8-be1733f59684",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1iemN4iHiwYeCHOVLMTN1pgHv4hzHYeA1iLygF5fa2uE",
+          "mode": "list",
+          "cachedResultName": "n8n-pov",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1iemN4iHiwYeCHOVLMTN1pgHv4hzHYeA1iLygF5fa2uE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1iemN4iHiwYeCHOVLMTN1pgHv4hzHYeA1iLygF5fa2uE/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "status",
+              "lookupValue": "pending"
+            }
+          ]
+        },
+        "options": {
+          "returnFirstMatch": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -40,
+        -40
+      ],
+      "id": "b225d0cd-790d-41b6-9d76-f7a65fc180cb",
+      "name": "Fetch Input Data",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "XkZbpLCGwtebYMVn",
+          "name": "Google Sheets account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "= # First-Person POV Image Prompt\n\n## Foreground (Limb Interaction)\n*First-person view POV GoPro shot of [describe limb/hand interaction—e.g., gripping a weapon, adjusting armor, or touching surroundings]. [Add sensory details: texture, movement, lighting, etc.]*\n\n## Background (Scene & Atmosphere)\n*In the background, [describe environment—architecture, lighting, other figures]. [Include ambient details: sounds, smells, weather, or cultural elements to deepen immersion].*\n\n---\n\n### Example Input:\nTopic: *POV: you wake up as a gladiator entering the Colosseum*  \nEnvironment: *Ancient Rome, poor but fierce warrior*\n\n### Example Output:\nFirst-person view POV GoPro shot of your calloused hands tightening around the grip of a chipped gladius, dried blood crusted under cracked knuckles. A ragged leather bracer shifts as you flex your wrist, the morning sun glaring off the sand-strewn ground. In the background, the towering stone arches of the Colosseum loom, their shadows slicing across the dusty arena floor. Distant chants of the crowd vibrate through your chest, mixing with the iron scent of sweat and fear. Other fighters—some praying, others sharpening blades—move like ghosts in the hazy light.\n\n---\n\n### Rules\n- Pure text without line break\n\n---\n\n### Guidelines for Customization:\n- Limb Interaction: Always show active hands/feet (e.g., gripping, pushing, or injured).\n- Sensory Layering: Add 1–2 implied sounds/smells (e.g., clashing metal, burning torches).\n- Cultural Nuance: Include era-specific props (e.g., Roman armor, medieval torches).\n\nCurrent topic: {{ $('Fetch Input Data').item.json.topic }}  \nCurrent environment: {{ $('Fetch Input Data').item.json.environment }}\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        140,
+        -40
+      ],
+      "id": "28be57ac-d8fe-4d81-85dd-c9b45717ddfc",
+      "name": "Generate Prompt( Agent )"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.together.xyz/v1/images/generations",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"black-forest-labs/FLUX.1-schnell-Free\",\n  \"prompt\": \"{{ $json.output.replace(\"\\n\", \"\") }}\",\n  \"width\": 720,\n  \"height\": 1280,\n  \"steps\": 4,\n  \"n\": 1,\n  \"response_format\": \"b64_json\",\n  \"stop\": []\n}\n\n\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        500,
+        -40
+      ],
+      "id": "77e74b7c-9db4-4e76-808b-5633ebeefc72",
+      "name": "Call Together AI API",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "ZBhvr3OJRMCyR7o9",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "data[0].b64_json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        720,
+        -40
+      ],
+      "id": "6d08ccd5-ed32-44ee-a9ba-9f48b0c2de4a",
+      "name": "Base64 to Binary"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "=/files/images/{{ $now.format('yyyyMMdd_HHmmss') }}.jpg",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        940,
+        -40
+      ],
+      "id": "07f415af-bf2e-4baf-aae8-d3fa68ce4930",
+      "name": "Save the Image File"
+    },
+    {
+      "parameters": {
+        "fileSelector": "={{ $json.fileName }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        1160,
+        -40
+      ],
+      "id": "112f70ac-09da-43a6-89df-6abad1333ccf",
+      "name": "Load Saved Image File"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:5005/run",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "input",
+              "value": "=/Users/pruthvik/n8n-files/images/{{ $json.fileName }}"
+            },
+            {
+              "name": "output",
+              "value": "=/Users/pruthvik/n8n-files/images/video.mp4"
+            },
+            {
+              "name": "prompt",
+              "value": "={{ $(\"Generate Prompt( Agent )\").item.json.output }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1420,
+        -40
+      ],
+      "id": "d69b8109-20dc-4a88-9a58-3e265b24d672",
+      "name": "Send the image and Prompt to Flask API"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-1.5-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        80,
+        520
+      ],
+      "id": "745f1d17-fd9e-47fe-a520-992af405efc2",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "7BnZYQIK08FCvMsg",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1iemN4iHiwYeCHOVLMTN1pgHv4hzHYeA1iLygF5fa2uE",
+          "mode": "list",
+          "cachedResultName": "n8n-pov",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1iemN4iHiwYeCHOVLMTN1pgHv4hzHYeA1iLygF5fa2uE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1iemN4iHiwYeCHOVLMTN1pgHv4hzHYeA1iLygF5fa2uE/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "status",
+              "lookupValue": "pending"
+            }
+          ]
+        },
+        "options": {
+          "returnFirstMatch": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -60,
+        360
+      ],
+      "id": "d088615f-46d6-4196-9a06-31607a15a7b3",
+      "name": "Fetch Input Data1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "XkZbpLCGwtebYMVn",
+          "name": "Google Sheets account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "= # First-Person POV Image Prompt\n\n## Foreground (Limb Interaction)\n*First-person view POV GoPro shot of [describe limb/hand interaction—e.g., gripping a weapon, adjusting armor, or touching surroundings]. [Add sensory details: texture, movement, lighting, etc.]*\n\n## Background (Scene & Atmosphere)\n*In the background, [describe environment—architecture, lighting, other figures]. [Include ambient details: sounds, smells, weather, or cultural elements to deepen immersion].*\n\n---\n\n### Example Input:\nTopic: *POV: you wake up as a gladiator entering the Colosseum*  \nEnvironment: *Ancient Rome, poor but fierce warrior*\n\n### Example Output:\nFirst-person view POV GoPro shot of your calloused hands tightening around the grip of a chipped gladius, dried blood crusted under cracked knuckles. A ragged leather bracer shifts as you flex your wrist, the morning sun glaring off the sand-strewn ground. In the background, the towering stone arches of the Colosseum loom, their shadows slicing across the dusty arena floor. Distant chants of the crowd vibrate through your chest, mixing with the iron scent of sweat and fear. Other fighters—some praying, others sharpening blades—move like ghosts in the hazy light.\n\n---\n\n### Rules\n- Pure text without line break\n\n---\n\n### Guidelines for Customization:\n- Limb Interaction: Always show active hands/feet (e.g., gripping, pushing, or injured).\n- Sensory Layering: Add 1–2 implied sounds/smells (e.g., clashing metal, burning torches).\n- Cultural Nuance: Include era-specific props (e.g., Roman armor, medieval torches).\n\nCurrent topic: {{ $('Fetch Input Data1').item.json.topic }}  \nCurrent environment: {{ $('Fetch Input Data1').item.json.environment }}\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        160,
+        360
+      ],
+      "id": "06f3b969-406e-4478-a25f-f6876708e47b",
+      "name": "Generate Prompt( Agent )1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.together.xyz/v1/images/generations",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"black-forest-labs/FLUX.1-schnell-Free\",\n  \"prompt\": \"{{ $json.output.replace(\"\\n\", \"\") }}\",\n  \"width\": 720,\n  \"height\": 1280,\n  \"steps\": 4,\n  \"n\": 1,\n  \"response_format\": \"b64_json\",\n  \"stop\": []\n}\n\n\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        520,
+        360
+      ],
+      "id": "e8bcd34d-c871-4348-9971-2d77ba3a6f99",
+      "name": "Call Together AI API1",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "ZBhvr3OJRMCyR7o9",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "data[0].b64_json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        740,
+        360
+      ],
+      "id": "4c69e116-81d0-462f-a4c1-69715083a19b",
+      "name": "Base64 to Binary1"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "=/files/images/{{ $now.format('yyyyMMdd_HHmmss') }}.jpg",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        960,
+        360
+      ],
+      "id": "1b16a267-5c6b-422f-b8a5-ed174ea6f387",
+      "name": "Save the Image File1"
+    },
+    {
+      "parameters": {
+        "fileSelector": "={{ $json.fileName }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        1160,
+        360
+      ],
+      "id": "d97798cc-2836-481f-86be-0d1ee1588ca3",
+      "name": "Load Saved Image File1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:5005/run",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "input",
+              "value": "=/Users/pruthvik/n8n-files/images/{{ $json.fileName }}"
+            },
+            {
+              "name": "output",
+              "value": "=/Users/pruthvik/n8n-files/images/video.mp4"
+            },
+            {
+              "name": "prompt",
+              "value": "={{ $(\"Generate Prompt( Agent )1\").item.json.output }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1420,
+        360
+      ],
+      "id": "46d95f97-0a9f-4a8b-8ee6-a6362d8566d5",
+      "name": "Send the image and Prompt to Flask API1"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-1.5-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        80,
+        900
+      ],
+      "id": "365bd992-b5b6-4f72-aed7-81a910354dfc",
+      "name": "Google Gemini Chat Model2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "7BnZYQIK08FCvMsg",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1iemN4iHiwYeCHOVLMTN1pgHv4hzHYeA1iLygF5fa2uE",
+          "mode": "list",
+          "cachedResultName": "n8n-pov",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1iemN4iHiwYeCHOVLMTN1pgHv4hzHYeA1iLygF5fa2uE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1iemN4iHiwYeCHOVLMTN1pgHv4hzHYeA1iLygF5fa2uE/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "status",
+              "lookupValue": "pending"
+            }
+          ]
+        },
+        "options": {
+          "returnFirstMatch": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -60,
+        740
+      ],
+      "id": "b9482edd-75e5-45b5-a99d-027bc9909849",
+      "name": "Fetch Input Data2",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "XkZbpLCGwtebYMVn",
+          "name": "Google Sheets account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "= # First-Person POV Image Prompt\n\n## Foreground (Limb Interaction)\n*First-person view POV GoPro shot of [describe limb/hand interaction—e.g., gripping a weapon, adjusting armor, or touching surroundings]. [Add sensory details: texture, movement, lighting, etc.]*\n\n## Background (Scene & Atmosphere)\n*In the background, [describe environment—architecture, lighting, other figures]. [Include ambient details: sounds, smells, weather, or cultural elements to deepen immersion].*\n\n---\n\n### Example Input:\nTopic: *POV: you wake up as a gladiator entering the Colosseum*  \nEnvironment: *Ancient Rome, poor but fierce warrior*\n\n### Example Output:\nFirst-person view POV GoPro shot of your calloused hands tightening around the grip of a chipped gladius, dried blood crusted under cracked knuckles. A ragged leather bracer shifts as you flex your wrist, the morning sun glaring off the sand-strewn ground. In the background, the towering stone arches of the Colosseum loom, their shadows slicing across the dusty arena floor. Distant chants of the crowd vibrate through your chest, mixing with the iron scent of sweat and fear. Other fighters—some praying, others sharpening blades—move like ghosts in the hazy light.\n\n---\n\n### Rules\n- Pure text without line break\n\n---\n\n### Guidelines for Customization:\n- Limb Interaction: Always show active hands/feet (e.g., gripping, pushing, or injured).\n- Sensory Layering: Add 1–2 implied sounds/smells (e.g., clashing metal, burning torches).\n- Cultural Nuance: Include era-specific props (e.g., Roman armor, medieval torches).\n\nCurrent topic: {{ $('Fetch Input Data2').item.json.topic }}  \nCurrent environment: {{ $('Fetch Input Data2').item.json.environment }}\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        160,
+        740
+      ],
+      "id": "03569984-8d8d-4e96-bbc4-0518582d251b",
+      "name": "Generate Prompt( Agent )2"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.together.xyz/v1/images/generations",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"black-forest-labs/FLUX.1-schnell-Free\",\n  \"prompt\": \"{{ $json.output.replace(\"\\n\", \"\") }}\",\n  \"width\": 720,\n  \"height\": 1280,\n  \"steps\": 4,\n  \"n\": 1,\n  \"response_format\": \"b64_json\",\n  \"stop\": []\n}\n\n\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        540,
+        740
+      ],
+      "id": "dec7668d-940f-4473-8600-14de35d03827",
+      "name": "Call Together AI API2",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "ZBhvr3OJRMCyR7o9",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "data[0].b64_json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        760,
+        740
+      ],
+      "id": "c684fcf1-d735-4e47-96cf-0a1855e53574",
+      "name": "Base64 to Binary2"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "=/files/images/{{ $now.format('yyyyMMdd_HHmmss') }}.jpg",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        980,
+        740
+      ],
+      "id": "b1b07198-5682-4f3d-9456-697a0dc18e9d",
+      "name": "Save the Image File2"
+    },
+    {
+      "parameters": {
+        "fileSelector": "={{ $json.fileName }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        1180,
+        740
+      ],
+      "id": "af2c8639-3292-43b0-9a22-836a4df45f4c",
+      "name": "Load Saved Image File2"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:5005/run",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "input",
+              "value": "=/Users/pruthvik/n8n-files/images/{{ $json.fileName }}"
+            },
+            {
+              "name": "output",
+              "value": "=/Users/pruthvik/n8n-files/images/video.mp4"
+            },
+            {
+              "name": "prompt",
+              "value": "={{ $(\"Generate Prompt( Agent )2\").item.json.output }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1380,
+        740
+      ],
+      "id": "e6cc97e7-a13e-4784-b74f-3043fe54a316",
+      "name": "Send the image and Prompt to Flask API2"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "= # First-Person POV Image Prompt\n\n## Foreground (Limb Interaction)\n*First-person view POV GoPro shot of [describe limb/hand interaction—e.g., gripping a weapon, adjusting armor, or touching surroundings]. [Add sensory details: texture, movement, lighting, etc.]*\n\n## Background (Scene & Atmosphere)\n*In the background, [describe environment—architecture, lighting, other figures]. [Include ambient details: sounds, smells, weather, or cultural elements to deepen immersion].*\n\n---\n\n### Example Input:\nTopic: *POV: you wake up as a gladiator entering the Colosseum*  \nEnvironment: *Ancient Rome, poor but fierce warrior*\n\n### Example Output:\nFirst-person view POV GoPro shot of your calloused hands tightening around the grip of a chipped gladius, dried blood crusted under cracked knuckles. A ragged leather bracer shifts as you flex your wrist, the morning sun glaring off the sand-strewn ground. In the background, the towering stone arches of the Colosseum loom, their shadows slicing across the dusty arena floor. Distant chants of the crowd vibrate through your chest, mixing with the iron scent of sweat and fear. Other fighters—some praying, others sharpening blades—move like ghosts in the hazy light.\n\n---\n\n### Rules\n- Pure text without line break\n\n---\n\n### Guidelines for Customization:\n- Limb Interaction: Always show active hands/feet (e.g., gripping, pushing, or injured).\n- Sensory Layering: Add 1–2 implied sounds/smells (e.g., clashing metal, burning torches).\n- Cultural Nuance: Include era-specific props (e.g., Roman armor, medieval torches).\n\nCurrent topic: {{ $('Google Sheets2').item.json.topic }}  \nCurrent environment: {{ $('Google Sheets2').item.json.environment }}\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        -40,
+        1160
+      ],
+      "id": "8e2edbd1-aea4-45a2-bd38-9f6cc71a1e38",
+      "name": "Final Prompt"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:5005/run",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "input",
+              "value": "=/Users/pruthvik/n8n-files/images/{{ $json.fileName }}"
+            },
+            {
+              "name": "output",
+              "value": "=/Users/pruthvik/n8n-files/images/video.mp4"
+            },
+            {
+              "name": "prompt",
+              "value": "={{ $(\"AI Agent2\").item.json.output }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        420,
+        1160
+      ],
+      "id": "9ea80c6d-683e-4b7c-915e-bdc87d3d0ccd",
+      "name": "Prepare Post Processing"
+    },
+    {
+      "parameters": {
+        "command": "echo \"test\""
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        920,
+        1160
+      ],
+      "id": "152541ed-406a-40f9-980a-3c9163fb3f6c",
+      "name": "Run Video Processing"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1iemN4iHiwYeCHOVLMTN1pgHv4hzHYeA1iLygF5fa2uE",
+          "mode": "list",
+          "cachedResultName": "n8n-pov",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1iemN4iHiwYeCHOVLMTN1pgHv4hzHYeA1iLygF5fa2uE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1iemN4iHiwYeCHOVLMTN1pgHv4hzHYeA1iLygF5fa2uE/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "topic",
+              "displayName": "topic",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "environment",
+              "displayName": "environment",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "music",
+              "displayName": "music",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "output",
+              "displayName": "output",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1180,
+        1160
+      ],
+      "id": "6614d86d-efb9-4fa1-9872-fed1d3471e10",
+      "name": "Update Status in Sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "XkZbpLCGwtebYMVn",
+          "name": "Google Sheets account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fileSelector": "={{ $json.fileName }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        1400,
+        1160
+      ],
+      "id": "738e3d15-a3df-4d15-a6e3-8ac60167061a",
+      "name": "Save Final output File"
+    },
+    {
+      "parameters": {
+        "fileSelector": "={{ $json.fileName }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        1620,
+        -40
+      ],
+      "id": "6a12bb81-6735-4ea6-b604-6b82d99a282c",
+      "name": "Save Video"
+    },
+    {
+      "parameters": {
+        "fileSelector": "={{ $json.fileName }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        1640,
+        360
+      ],
+      "id": "c27b8640-0998-423e-809e-61bffb4451c0",
+      "name": "Save Video1"
+    },
+    {
+      "parameters": {
+        "fileSelector": "={{ $json.fileName }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        1600,
+        740
+      ],
+      "id": "21d80dbc-c50f-4733-8ac7-3e34bbbe0aa3",
+      "name": "Save Video2"
+    },
+    {
+      "parameters": {
+        "content": "Image 1",
+        "height": 360,
+        "width": 1660,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -340,
+        -100
+      ],
+      "id": "fa37532a-507a-4900-a811-603e87b8c96f",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "Video 1\n",
+        "height": 360,
+        "width": 460,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1360,
+        -100
+      ],
+      "typeVersion": 1,
+      "id": "1f8c4bcf-afa7-4cc9-8a10-d9a47d3dac77",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "Image 2",
+        "height": 360,
+        "width": 1660,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -340,
+        300
+      ],
+      "id": "b2c86dd1-ab77-4a82-b1de-3343ae34189f",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "Video 2\n",
+        "height": 360,
+        "width": 460,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1360,
+        300
+      ],
+      "typeVersion": 1,
+      "id": "c25d1bcf-6d93-482c-8a67-14944efdd58e",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "Image 3",
+        "height": 360,
+        "width": 1660,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -340,
+        700
+      ],
+      "id": "b10ac66d-f8b1-4649-9c03-25ddad2695cc",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "Video 3\n",
+        "height": 360,
+        "width": 460,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1360,
+        700
+      ],
+      "typeVersion": 1,
+      "id": "8a36b3ff-7b51-4dee-abad-961babfa7f71",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "Final Video",
+        "height": 360,
+        "width": 2160,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -340,
+        1100
+      ],
+      "id": "c416bb42-314e-4503-adf1-d402d7bf63c9",
+      "name": "Sticky Note6"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Fetch Input Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Generate Prompt( Agent )",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Final Prompt",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Run Video Processing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Input Data": {
+      "main": [
+        [
+          {
+            "node": "Generate Prompt( Agent )",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Prompt( Agent )": {
+      "main": [
+        [
+          {
+            "node": "Call Together AI API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Together AI API": {
+      "main": [
+        [
+          {
+            "node": "Base64 to Binary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Base64 to Binary": {
+      "main": [
+        [
+          {
+            "node": "Save the Image File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save the Image File": {
+      "main": [
+        [
+          {
+            "node": "Load Saved Image File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Saved Image File": {
+      "main": [
+        [
+          {
+            "node": "Send the image and Prompt to Flask API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send the image and Prompt to Flask API": {
+      "main": [
+        [
+          {
+            "node": "Save Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Generate Prompt( Agent )1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Input Data1": {
+      "main": [
+        [
+          {
+            "node": "Generate Prompt( Agent )1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Prompt( Agent )1": {
+      "main": [
+        [
+          {
+            "node": "Call Together AI API1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Together AI API1": {
+      "main": [
+        [
+          {
+            "node": "Base64 to Binary1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Base64 to Binary1": {
+      "main": [
+        [
+          {
+            "node": "Save the Image File1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save the Image File1": {
+      "main": [
+        [
+          {
+            "node": "Load Saved Image File1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Saved Image File1": {
+      "main": [
+        [
+          {
+            "node": "Send the image and Prompt to Flask API1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Generate Prompt( Agent )2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Input Data2": {
+      "main": [
+        [
+          {
+            "node": "Generate Prompt( Agent )2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Prompt( Agent )2": {
+      "main": [
+        [
+          {
+            "node": "Call Together AI API2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Together AI API2": {
+      "main": [
+        [
+          {
+            "node": "Base64 to Binary2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Base64 to Binary2": {
+      "main": [
+        [
+          {
+            "node": "Save the Image File2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save the Image File2": {
+      "main": [
+        [
+          {
+            "node": "Load Saved Image File2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Saved Image File2": {
+      "main": [
+        [
+          {
+            "node": "Send the image and Prompt to Flask API2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send the image and Prompt to Flask API1": {
+      "main": [
+        [
+          {
+            "node": "Save Video1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send the image and Prompt to Flask API2": {
+      "main": [
+        [
+          {
+            "node": "Save Video2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Final Prompt": {
+      "main": [
+        [
+          {
+            "node": "Prepare Post Processing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Post Processing": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run Video Processing": {
+      "main": [
+        [
+          {
+            "node": "Update Status in Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Status in Sheet": {
+      "main": [
+        [
+          {
+            "node": "Save Final output File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Video": {
+      "main": [
+        [
+          {
+            "node": "Fetch Input Data1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Video1": {
+      "main": [
+        [
+          {
+            "node": "Fetch Input Data2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Video2": {
+      "main": [
+        [
+          {
+            "node": "Final Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "0964521b-78d6-4784-bb13-537ebd3d04d9",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "824415b47f6f5ef03d1c5393580b191f94a519b9c37f3533e4f9d8ddf525cf96"
+  },
+  "id": "IgysWUWY7SpvKNxF",
+  "tags": []
+}
