@@ -22,7 +22,7 @@ How It Works:
    - Converts the base64 image response into a binary file and saves it locally.
 
 5. **Video Generation**:
-   - Sends the image and prompt to a local Flask API at `http://host.docker.internal:5005/run`.
+   - Sends the image and prompt to a local Flask API at `http://host.docker.internal:505/run`.
    - Video is rendered and saved as `.mp4`.
 
 6. **Final Processing**:
